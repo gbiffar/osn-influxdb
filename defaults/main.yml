@@ -6,6 +6,7 @@ influxdb_data_dir: /metrics_stor/influxdb/data
 influxdb_wal_dir: /metrics_stor/influxdb/wal
 influxdb_listen_ip: 172.16.2.12
 influxdb_server_db: osn
+influxdb_default_retention: 1080h0m0s
 influxdb_server_username: osn
 influxdb_server_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256

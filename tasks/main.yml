@@ -69,6 +69,20 @@
   when: "'ERR: error authorizing query: create admin user first or disable authentication' in show_db.stdout_lines"
 
 - name: create influxdb database
-  command: "/usr/bin/influx -host {{ influxdb_listen_ip }} -execute \"CREATE DATABASE osn\" -username {{ influxdb_server_username }} -password '{{ influxdb_server_password }}'"
-  when: "'osn' not in show_db.stdout_lines"
+  command: "/usr/bin/influx -host {{ influxdb_listen_ip }} -execute \"CREATE DATABASE {{ influxdb_server_db }}\" -username {{ influxdb_server_username }} -password '{{ influxdb_server_password }}'"
+  when: "not show_db.stdout is search(influxdb_server_db)"
 
+- name: show influxdb default retention
+  command: "/usr/bin/influx -host {{ influxdb_listen_ip }} -execute \"SHOW RETENTION POLICIES ON {{ influxdb_server_db }}\" -username {{ influxdb_server_username }} -password '{{ influxdb_server_password }}'"
+  register: show_retention
+  changed_when: false
+  ignore_errors: true
+
+- name: return from show retention
+  debug:
+    var: show_retention
+    verbosity: 2
+
+- name: set default retention 
+  command: "/usr/bin/influx -host {{ influxdb_listen_ip }} -execute \"ALTER RETENTION POLICY autogen ON {{ influxdb_server_db }} DURATION {{ influxdb_default_retention }}\" -username {{ influxdb_server_username }} -password '{{ influxdb_server_password }}'"
+  when: "not show_retention.stdout is search(influxdb_default_retention)"
